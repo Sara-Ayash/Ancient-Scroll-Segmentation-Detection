@@ -5,7 +5,7 @@ import os
 from PIL import Image
 import torch
 from torch.utils.data import DataLoader 
-from torchvision.models.detection import fasterrcnn_resnet50_fpn  
+from torchvision.models.detection import fasterrcnn_resnet50_fpn ,  FasterRCNN_ResNet50_FPN_Weights 
 import torchvision.transforms as T
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 from torch.utils.data import DataLoader
@@ -36,6 +36,26 @@ class Points(BaseModel):
     min_point: List[float]
     max_point: List[float]
     
+    def to_bbox_xyhw(self):
+        """convert to bbox format xywh"""
+        xmin, ymin = self.min_point
+        xmax, ymax = self.max_point
+        width = xmax - xmin
+        height = ymax - ymin
+        return [xmin, ymin, height, width]
+
+    def to_bbox(self):
+        xmin, ymin = self.min_point
+        xmax, ymax = self.max_point
+ 
+        # Ensure correct ordering of coordinates
+        xmin, xmax = min(xmin, xmax), max(xmin, xmax)
+        ymin, ymax = min(ymin, ymax), max(ymin, ymax)
+ 
+        return [xmin, ymin, xmax, ymax]
+         
+
+
     def area(self):
         xmin, xmax = self.min_point
         ymin, ymax = self.max_point
@@ -55,45 +75,9 @@ class BoundingBox(BaseModel):
 class Shape(BaseModel):
     label: int
     bbox: List[float]
-
-
+ 
     
-    
-def IOU(bbox, result_bbox):
-    xmin_a, xmax_a, ymin_a, ymax_a = bbox
-    xmin_b, xmax_b, ymin_b, ymax_b = result_bbox
-    point_a = Points(min_point=[xmin_a, xmax_a], max=[ymin_a, ymax_a])
-    point_b = Points(min_point=[xmin_b, xmax_b], max=[ymin_b, ymax_b])
 
-    area_inter = if_intersection(xmin_a, xmax_a, ymin_a, ymax_a, xmin_b, xmax_b, ymin_b, ymax_b)
-    if area_inter:
-        area_a = point_a.area
-        area_b = point_a.area
-        iou = float(area_inter) / (area_a + area_b - area_inter)
-        return iou
-    return 0
-
-def if_intersection(xmin_a, xmax_a, ymin_a, ymax_a, xmin_b, xmax_b, ymin_b, ymax_b) -> float:
-    if_intersect = False
-    if xmin_a < xmax_b <= xmax_a and (ymin_a < ymax_b <= ymax_a or ymin_a <= ymin_b < ymax_a):
-        if_intersect = True
-    elif xmin_a <= xmin_b < xmax_a and (ymin_a < ymax_b <= ymax_a or ymin_a <= ymin_b < ymax_a):
-        if_intersect = True
-    elif xmin_b < xmax_a <= xmax_b and (ymin_b < ymax_a <= ymax_b or ymin_b <= ymin_a < ymax_b):
-        if_intersect = True
-    elif xmin_b <= xmin_a < xmax_b and (ymin_b < ymax_a <= ymax_b or ymin_b <= ymin_a < ymax_b):
-        if_intersect = True
-    else:
-        return if_intersect
-    if if_intersect:
-        x_sorted_list = sorted([xmin_a, xmax_a, xmin_b, xmax_b])
-        y_sorted_list = sorted([ymin_a, ymax_a, ymin_b, ymax_b])
-        x_intersect_w = x_sorted_list[2] - x_sorted_list[1]
-        y_intersect_h = y_sorted_list[2] - y_sorted_list[1]
-        area_inter = x_intersect_w * y_intersect_h
-        return area_inter
-    return 0
-  
 
 class AncientScrollDataset(datasets.VisionDataset):
     def __init__(self, data_dir, include_transform=True):
@@ -119,7 +103,6 @@ class AncientScrollDataset(datasets.VisionDataset):
         
         return image, target
     
-
     def set_transform(self):
         return transforms.Compose([
             transforms.ToTensor(), 
@@ -138,11 +121,15 @@ class AncientScrollDataset(datasets.VisionDataset):
         # ]
         for shape in shapes:
             labels.append(int(shape.get('label')))
-            bboxes.append(sum(shape.get('points', []), []))
+            points = Points(
+                min_point=shape.get('points')[0],
+                max_point=shape.get('points')[1]
+            )
+            bboxes.append(points.to_bbox())
 
         return {
             "boxes": torch.tensor(bboxes, dtype=torch.float32),
-            "labels": torch.tensor(labels, dtype=torch.float32),
+            "labels": torch.tensor(labels, dtype=torch.int64),
         } 
 
     
@@ -174,13 +161,13 @@ def train_one_epoch(model, optimizer, data_loader, device, epoch):
         
 def get_fasterrcnn_model():
     # Load the pre-trained Faster R-CNN model with a ResNet-50 backbone
-    model = fasterrcnn_resnet50_fpn(pretrained=True)
+    model = fasterrcnn_resnet50_fpn(weights=FasterRCNN_ResNet50_FPN_Weights.COCO_V1)
 
     # Get the number of input features for the classifier
     in_features = model.roi_heads.box_predictor.cls_score.in_features
 
     # Replace the head of the model with a new one (for the number of classes in your dataset)
-    model.roi_heads.box_predictor = FastRCNNPredictor(in_features, 1)
+    model.roi_heads.box_predictor = FastRCNNPredictor(in_features, 2)
 
     return model
 
@@ -227,4 +214,4 @@ if __name__ == "__main__":
         print(f"Model saved: {fasterrcnn_model_path}")
  
     
-   
+    
