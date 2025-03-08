@@ -3,7 +3,7 @@ import torch
 from typing import List
 from ancient_scroll_dataset import ImageData, Row
 from helpers import export_training_results_to_csv
-import models.faster_rcnn_resnet50_fpn as faster_rcnn
+import train_faster_rcnn_resnet50_fpn_model as faster_rcnn
  
 device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
