@@ -1,21 +1,16 @@
 import torch
-from typing import List
-from helpers import Row, export_training_results_to_csv
-from image_data import ImageData
-import train_faster_rcnn_model as faster_rcnn
-import train_yolo_model as yolov8_model
+from helpers import export_training_results_to_csv
+from train_faster_rcnn_model import FasterRcnnModel
+from train_yolo_model import YoloV8Model  
  
 device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
-
 def get_best_model(best_model):
     if best_model == "yolov8": 
-        return yolov8_model.YoloV8() 
+        return YoloV8Model()
     elif best_model == "faster_rcnn":
-        model = faster_rcnn.get_fasterrcnn_model()
-        model.eval()
-        return model
-
+        return FasterRcnnModel()
+    
     
 def predict_process_bounding_boxes(image_path: str, output_csv: str) -> None:
     """
@@ -26,12 +21,12 @@ def predict_process_bounding_boxes(image_path: str, output_csv: str) -> None:
     output_csv (str): Path to the output CSV file.
     """ 
 
-    detection_model = get_best_model("yolov8")
+    detection_model = get_best_model("faster_rcnn")
     
     img_train_result = detection_model.evaluation(image_path)
 
     export_training_results_to_csv(
-        csv_file=output_csv, 
+        csv_file=detection_model.csv_results_path, 
         train_result=img_train_result
     )
 
