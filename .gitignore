@@ -2,3 +2,4 @@ models/faster_rcnn/fasterrcnn_resnet50.pth
 runs/*
 models/yolo/datasets/ancient_scroll_dataset/labels/train.cache
 models/yolo/datasets/ancient_scroll_dataset/labels/valid.cache
+models/faster_rcnn/fasterrcnn_resnet50-.pth
