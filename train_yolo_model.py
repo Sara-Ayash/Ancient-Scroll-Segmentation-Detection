@@ -4,8 +4,8 @@ import torch
 from typing import List
 from helpers import Row
 from ultralytics import YOLO
-from detection_model import DetectionModel
 from image_data import ImageData
+from detection_model import DetectionModel
 
  
 device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
@@ -46,7 +46,7 @@ class YoloV8Model(DetectionModel):
         
         for result in results:
             pred_bboxes = result.boxes.xyxy
-            img_train_result: List[Row] = image_data.analyze_train_result(pred_bboxes)
+            img_train_result: List[Row] = image_data.analyze_test_result(pred_bboxes)
             final_analyze_train_result.extend(img_train_result)
 
         return final_analyze_train_result

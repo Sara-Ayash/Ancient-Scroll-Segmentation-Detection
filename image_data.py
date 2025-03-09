@@ -2,6 +2,7 @@
 import os
 import cv2
 import json
+import pandas as pd
 import torch
 import numpy as np
 from PIL import Image

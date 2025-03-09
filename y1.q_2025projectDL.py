@@ -1,15 +1,18 @@
 import torch
-from helpers import export_training_results_to_csv
+from helpers import draw_frames, export_training_results_to_csv
 from train_faster_rcnn_model import FasterRcnnModel
+from train_retina_net_model import RetinaNetDetectionModel
 from train_yolo_model import YoloV8Model  
  
 device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
-def get_best_model(best_model):
+def get_best_model(best_model= None):
     if best_model == "yolov8": 
         return YoloV8Model()
     elif best_model == "faster_rcnn":
         return FasterRcnnModel()
+    else:
+        return RetinaNetDetectionModel()
     
     
 def predict_process_bounding_boxes(image_path: str, output_csv: str) -> None:
@@ -21,8 +24,9 @@ def predict_process_bounding_boxes(image_path: str, output_csv: str) -> None:
     output_csv (str): Path to the output CSV file.
     """ 
 
-    detection_model = get_best_model("yolov8")
-    
+    detection_model = get_best_model()
+    detection_model.csv_results_path = output_csv
+
     img_train_result = detection_model.evaluation(image_path)
 
     export_training_results_to_csv(
@@ -30,8 +34,11 @@ def predict_process_bounding_boxes(image_path: str, output_csv: str) -> None:
         train_result=img_train_result
     )
 
+    return detection_model.csv_results_path
+
 if __name__ == "__main__":
-    image_path = 'saraay@post.jce.ac.il/M40587-1-C.jpg'
-    csv_file = 'predict_bboxes.csv'
-    predict_process_bounding_boxes(image_path, csv_file)
+    image_path = 'saraay@post.jce.ac.il/test/M40588-1-C.jpg'
+    csv_file = 'predict_bboxes_M40588.csv'
+    csv_results_path = predict_process_bounding_boxes(image_path, csv_file)
+    draw_frames(image_path, csv_file)
  
