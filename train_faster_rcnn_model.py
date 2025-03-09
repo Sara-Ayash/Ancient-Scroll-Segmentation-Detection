@@ -2,9 +2,9 @@
 import os
 import torch
 from typing import List
-from torchvision import datasets 
 from helpers import Row
 from image_data import ImageData 
+from torchvision import datasets 
 from torch.utils.data import DataLoader
 from detection_model import DetectionModel
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor

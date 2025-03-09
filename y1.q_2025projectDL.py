@@ -21,7 +21,7 @@ def predict_process_bounding_boxes(image_path: str, output_csv: str) -> None:
     output_csv (str): Path to the output CSV file.
     """ 
 
-    detection_model = get_best_model("faster_rcnn")
+    detection_model = get_best_model("yolov8")
     
     img_train_result = detection_model.evaluation(image_path)
 
