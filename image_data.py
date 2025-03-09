@@ -1,15 +1,12 @@
 
 import os
-import json
-import numpy as np
-import torch
 import cv2
-from typing import List
+import json
+import torch
+import numpy as np
 from PIL import Image
-from torchvision import datasets, transforms
-from pydantic import BaseModel
-from torchvision.tv_tensors import BoundingBoxes
-
+from typing import List
+from torchvision import transforms
 from helpers import Row, correct_bounding_boxes, sort_by_distance
 
 

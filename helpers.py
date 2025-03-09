@@ -58,21 +58,3 @@ def export_training_results_to_csv(train_result: List[Row], csv_file):
 
 
 
-def train_one_epoch(model, optimizer, data_loader, device, epoch):
-    for images, targets, _ in data_loader:
-        images = list(image.to(device) for image in images)
-        targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
-        
-        # Zero the gradients
-        optimizer.zero_grad()
-
-        # Forward pass
-        loss_dict = model(images, targets)
-        losses = sum(loss for loss in loss_dict.values())
-
-        # Backpropagation
-        optimizer.zero_grad()
-        losses.backward()
-        optimizer.step()
-
-    print(f"Epoch [{epoch}] Loss: {losses.item()}")
