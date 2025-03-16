@@ -2,7 +2,7 @@
 import os
 import torch
 from typing import List
-from helpers import Row
+from helpers import Row, export_training_results_to_csv, draw_bounding_boxes_from_csv
 from image_data import ImageData 
 from torchvision import datasets 
 from torch.utils.data import DataLoader
@@ -53,21 +53,20 @@ class FasterRcnnModel(DetectionModel):
             self._model = fasterrcnn_resnet50_fpn(weights=FasterRCNN_ResNet50_FPN_Weights.COCO_V1)
             in_features = self._model.roi_heads.box_predictor.cls_score.in_features
             self._model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes=2)
+            self._model.roi_heads.nms_thresh = 0.2
+            self._model.roi_heads.score_thresh = 0.5
 
             if os.path.exists(self.model_path):
                 self._model.load_state_dict(torch.load(self.model_path, weights_only=True))
             else: 
-                print("1", id(self._model))
                 self.train_model(self._model)
         
-        print("5", id(self._model))
         return self._model
 
     def train_model(self, model_to_train: FasterRCNN):
         train_dataset: datasets.ImageFolder = AncientScrollDataset('saraay@post.jce.ac.il')
         train_loader = DataLoader(train_dataset, batch_size=2, shuffle=True, collate_fn=lambda x: tuple(zip(*x)))
         
-        print("2", id(self._model))
         # Define optimizer and learning rate scheduler
         optimizer = torch.optim.SGD(model_to_train.parameters(), lr=0.005, momentum=0.9, weight_decay=0.0005)
         
@@ -80,11 +79,9 @@ class FasterRcnnModel(DetectionModel):
 
             # Save the model's state dictionary after every epoch
             torch.save(model_to_train.state_dict(), self.model_path)
-        
-        
- 
+
+
     def train_one_epoch(self, model_to_train: FasterRCNN, optimizer, data_loader, device, epoch):
-        print("3", id(model_to_train))
         for images, targets, _ in data_loader:
             images = list(image.to(device) for image in images)
             targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
@@ -116,8 +113,8 @@ class FasterRcnnModel(DetectionModel):
 
         
 
-    def validation_dataset(self, image_path: str) -> List[Row]:
-        dataset: datasets.ImageFolder = AncientScrollDataset(image_path)
+    def validation_dataset(self, validation_dir: str) -> List[Row]:
+        dataset: datasets.ImageFolder = AncientScrollDataset(validation_dir)
         data_loader = DataLoader(dataset, batch_size=4, shuffle=False, collate_fn=lambda x: tuple(zip(*x)))
 
         self.model.eval()
@@ -137,3 +134,15 @@ class FasterRcnnModel(DetectionModel):
 
         return final_analyze_train_result
 
+
+if __name__ == "__main__":
+    modelush = FasterRcnnModel()
+    validation_imgs_dir = 'saraay@post.jce.ac.il/validate'
+    csv_file = "FasterRcnnModel_validation_results.csv"
+    # results = modelush.validation_dataset(validation_imgs_dir)
+    # export_training_results_to_csv(
+    #     csv_file=csv_file, 
+    #     train_result=results
+    # )
+    draw_bounding_boxes_from_csv(validation_imgs_dir, csv_file)
+    
