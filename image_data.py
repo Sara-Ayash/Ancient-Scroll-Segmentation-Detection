@@ -14,7 +14,7 @@ from helpers import Row, correct_bounding_boxes, sort_by_distance
 class ImageData():
     def __init__(self, image_path, include_transform=True):
         self.image_path: str = image_path
-        self.image_name: str = os.path.splitext(os.path.realpath(image_path))[0]
+        self.image_name: str = os.path.splitext(os.path.basename(image_path))[0]
         self.annotation_path = os.path.splitext(image_path)[0] + '.json'
         self.transform = None if not include_transform else self.set_transform()
         self._bboxes = torch.tensor([])

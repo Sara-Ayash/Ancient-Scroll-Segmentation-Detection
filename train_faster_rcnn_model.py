@@ -14,7 +14,7 @@ from torchvision.models.detection import fasterrcnn_resnet50_fpn, FasterRCNN_Res
 device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
 model_path = "models/faster_rcnn/fasterrcnn_resnet50.pth"
-csv_results_path = "fasterrcnn_resnet50_results.csv"
+csv_results_path = "models/faster_rcnn/fasterrcnn_resnet50_results.csv"
 
 
 class AncientScrollDataset(datasets.VisionDataset):
@@ -64,7 +64,7 @@ class FasterRcnnModel(DetectionModel):
         return self._model
 
     def train_model(self, model_to_train: FasterRCNN):
-        train_dataset: datasets.ImageFolder = AncientScrollDataset('saraay@post.jce.ac.il')
+        train_dataset: datasets.ImageFolder = AncientScrollDataset('saraay@post.jce.ac.il/train')
         train_loader = DataLoader(train_dataset, batch_size=2, shuffle=True, collate_fn=lambda x: tuple(zip(*x)))
         
         # Define optimizer and learning rate scheduler
@@ -74,7 +74,7 @@ class FasterRcnnModel(DetectionModel):
         model_to_train.to(device)
         model_to_train.train()
 
-        for epoch in range(5):
+        for epoch in range(100):
             self.train_one_epoch(model_to_train, optimizer, train_loader, device, epoch)
 
             # Save the model's state dictionary after every epoch
@@ -138,11 +138,11 @@ class FasterRcnnModel(DetectionModel):
 if __name__ == "__main__":
     modelush = FasterRcnnModel()
     validation_imgs_dir = 'saraay@post.jce.ac.il/validate'
-    csv_file = "FasterRcnnModel_validation_results.csv"
-    # results = modelush.validation_dataset(validation_imgs_dir)
-    # export_training_results_to_csv(
-    #     csv_file=csv_file, 
-    #     train_result=results
-    # )
+    csv_file = modelush.csv_results_path
+    results = modelush.validation_dataset(validation_imgs_dir)
+    export_training_results_to_csv(
+        csv_file=csv_file, 
+        train_result=results
+    )
     draw_bounding_boxes_from_csv(validation_imgs_dir, csv_file)
     

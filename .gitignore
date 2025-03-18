@@ -4,3 +4,4 @@ models/yolo/datasets/ancient_scroll_dataset/labels/train.cache
 models/yolo/datasets/ancient_scroll_dataset/labels/valid.cache
 __pycache__/*
 yolov8n.pt
+output_images/*
