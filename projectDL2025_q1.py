@@ -1,4 +1,4 @@
-himport os
+import os
 import torch
 from helpers import draw_bounding_boxes_from_csv, export_training_results_to_csv
 from train_faster_rcnn_model import FasterRcnnModel
@@ -12,7 +12,8 @@ def get_best_model(best_model= None):
     else: return FasterRcnnModel()
     
     
-‫‪def‬‬ ‫‪process_detailed_bounding_boxes(image_paths:‬‬ ‫‪list[str],‬‬ ‫‪output_csv:‬‬ ‫)‪str‬‬ ‫>‪-‬‬    """
+def predict_process_bounding_boxes(image_path: str, output_csv: str) -> None:
+    """
     Processes an image to detect bounding boxes around scroll segments.
     Saves the bounding box data to a CSV file.
     Args:
@@ -20,8 +21,8 @@ def get_best_model(best_model= None):
     output_csv (str): Path to the output CSV file.
     """ 
 
-    detection_model = get_best_model()
-    # detection_model = get_best_model("yolov8")
+    # detection_model = get_best_model()
+    detection_model = get_best_model("yolov8")
 
     detection_model.csv_results_path = output_csv
 
