@@ -1,0 +1,6 @@
+path: /home/ec2-user/Ancient-Scroll-Segmentation-Detection/models/yolo/datasets/ancient_scroll_dataset
+train: /home/ec2-user/Ancient-Scroll-Segmentation-Detection/models/yolo/datasets/ancient_scroll_dataset/images/train
+val: /home/ec2-user/Ancient-Scroll-Segmentation-Detection/models/yolo/datasets/ancient_scroll_dataset/images/valid
+
+nc: 1
+names: ["scroll"]
