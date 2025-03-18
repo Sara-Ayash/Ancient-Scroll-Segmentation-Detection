@@ -66,9 +66,33 @@ class YoloV8Model(DetectionModel):
 
         return final_analyze_train_result
 
+
+       
+def prepare_data(dir_path):
+    images_list = [os.path.join(dir_path, f) for f in os.listdir(dir_path) if f.lower().endswith('.jpg')]
+
+    class_id = 0
+    for image_path in images_list:
+        image_data = ImageData(image_path=image_path)
+        bboxes = image_data.get_bboxes(format="yolo")
+        yolo_bboxes = []
+        for bbox in bboxes:
+            x_center, y_center, width, height = bbox
+            yolo_bboxes.append((class_id, x_center, y_center, width, height))
+        
+        labels_dir = "models/yolo/datasets/ancient_scroll_dataset/labels/valid"
+        labels_path = os.path.join(labels_dir, f'{image_data.image_name}.txt')
+        with open(labels_path, "w") as f:
+            for bbox in yolo_bboxes:
+                f.write(" ".join([str(x.item()) if isinstance(x, torch.Tensor) else str(x) for x in bbox]) + "\n")
+
+
 if __name__ == "__main__":
+
+    # prepare_data('saraay@post.jce.ac.il/validate_part_b')
+
     modelush = YoloV8Model()
-    validation_imgs_dir = 'saraay@post.jce.ac.il/validate'
+    validation_imgs_dir = 'saraay@post.jce.ac.il/validate_part_b'
     results = modelush.validation_dataset(validation_imgs_dir)
     csv_file = modelush.csv_results_path
     export_training_results_to_csv(

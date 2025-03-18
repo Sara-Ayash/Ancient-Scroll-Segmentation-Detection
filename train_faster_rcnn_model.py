@@ -58,13 +58,13 @@ class FasterRcnnModel(DetectionModel):
 
             if os.path.exists(self.model_path):
                 self._model.load_state_dict(torch.load(self.model_path, weights_only=True))
-            else: 
+            # else: 
                 self.train_model(self._model)
         
         return self._model
 
     def train_model(self, model_to_train: FasterRCNN):
-        train_dataset: datasets.ImageFolder = AncientScrollDataset('saraay@post.jce.ac.il/train')
+        train_dataset: datasets.ImageFolder = AncientScrollDataset('saraay@post.jce.ac.il/train_part_b')
         train_loader = DataLoader(train_dataset, batch_size=2, shuffle=True, collate_fn=lambda x: tuple(zip(*x)))
         
         # Define optimizer and learning rate scheduler
