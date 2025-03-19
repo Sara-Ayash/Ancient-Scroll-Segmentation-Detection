@@ -1,8 +1,8 @@
 import os
 import torch
 from helpers import Row, draw_bounding_boxes_from_csv, export_training_results_to_csv
-from train_faster_rcnn_model import FasterRcnnModel
-from train_yolo_model import YoloV8Model  
+from faster_rcnn_model import FasterRcnnModel
+from yolo_model import YoloV8Model  
  
 device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
@@ -25,33 +25,35 @@ def process_detailed_bounding_boxes(image_paths: list[str], output_csv: str) -> 
     Returns:
         list[str]: List of full paths (path + file) name of processed images.
     """
-    pred_results: list[Row] = [] 
+    pred_results: list[Row] = []
+    processed_images = []
+    
     for image_path in image_paths:
+        try:
+            # detection_model = YoloV8Model()
+            detection_model = FasterRcnnModel()
+            detection_model.csv_results_path = output_csv
 
-        detection_model = get_best_model()
-        detection_model = get_best_model("yolov8")
-        # detection_model.csv_results_path = "test_yolo.csv"
+            img_train_result = detection_model.evaluation(image_path)
 
-        img_train_result = detection_model.evaluation(image_path)
-        csv_file = f'faster_rcnn_test_{os.path.basename(image_path)}.csv'
-        export_training_results_to_csv(
-            csv_file=csv_file, 
-            train_result=img_train_result
-        )
+            pred_results.extend(img_train_result)
+            processed_images.append(image_path)
 
-        draw_bounding_boxes_from_csv(validation_dir, csv_file)
-        pred_results.extend(img_train_result)
+        except Exception as error:
+            print(f'An error occurred while trying to detect the scroll object for image: {image_path}. ERROR: {error}')
 
     export_training_results_to_csv(
         csv_file=detection_model.csv_results_path, 
         train_result=pred_results
     )
+    return processed_images
 
 
-if __name__ == "__main__":
-    validation_dir = "saraay@post.jce.ac.il/test"
-    image_paths = [os.path.join(validation_dir, f) for f in os.listdir(validation_dir) if f.lower().endswith('.jpg')]
-    
-    process_detailed_bounding_boxes(image_paths, 'yolo_res.csv')
+# if __name__ == "__main__":
+#     validation_dir = "test"
+#     image_paths = [os.path.join(validation_dir, f) for f in os.listdir(validation_dir) if f.lower().endswith('.jpg')][10:]
+#     csv_output = 'pred_results_part2_res.csv'
+#     process_detailed_bounding_boxes(image_paths, csv_output)
+#     draw_bounding_boxes_from_csv(validation_dir, csv_output)
  
     
